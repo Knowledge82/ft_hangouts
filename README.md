@@ -87,7 +87,8 @@ docs/
 app/src/main/java/com/fortytwo/hangouts/
 ├── DatabaseContract.java   — константы: имена таблиц/колонок
 ├── Contact.java            — модель данных контакта
-├── DatabaseHelper.java     — создание и версионирование SQLite-базы
+├── DatabaseHelper.java     — только создание и версионирование SQLite-базы
+├── ContactDao.java         — CRUD-операции над контактами (Data Access Object)
 └── ...                     — activities и остальная логика (в разработке)
 ```
 

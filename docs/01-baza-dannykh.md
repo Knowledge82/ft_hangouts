@@ -1,4 +1,4 @@
-# Этап 1. База данных: схема и первые три класса
+# Этап 1. База данных: схема, модель и слой доступа к данным
 
 ## Зачем своя БД, а не системная
 
@@ -240,6 +240,175 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 ---
 
+## Архитектурное решение: DAO вместо CRUD внутри `DatabaseHelper`
+
+Изначально CRUD-методы (`addContact`, `getAllContacts`, `updateContact`, `deleteContact`) были написаны прямо внутри `DatabaseHelper`. После обсуждения решено вынести их в отдельный класс — `ContactDao` (Data Access Object). Причина — **разделение ответственности** (separation of concerns): `DatabaseHelper` должен отвечать только за то, *как устроена* база (создание таблиц, версионирование), а не за то, *что с ней делать* (операции над данными). Если оставить всё в одном классе, при появлении новых таблиц (у нас уже запланирована `messages`) файл быстро превращается в "God Object" — раздутый класс, где вперемешку лежит логика для разных сущностей.
+
+Это классический компромисс между простотой (меньше файлов, быстрее видно результат) и поддерживаемостью (проще расширять и не запутаться, когда операций станет больше). Для проекта, который будет расти (ещё предстоит `messages`, а затем UI поверх обоих), выбор сделан в пользу поддерживаемости.
+
+## Файл 4: `ContactDao.java`
+
+### Что это и зачем
+
+DAO — класс, который **использует** `DatabaseHelper`, чтобы получить доступ к открытой базе, и предоставляет наружу только осмысленные операции над контактами (`addContact`, `getAllContacts`, `updateContact`, `deleteContact`). Остальной код приложения (будущие Activity) будет обращаться к базе **только через DAO**, никогда не работая с `DatabaseHelper` напрямую.
+
+### Код
+
+```java
+package com.fortytwo.hangouts;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.fortytwo.hangouts.DatabaseContract.*;
+
+public class ContactDao {
+
+    private final DatabaseHelper dbHelper;
+
+    public ContactDao(Context context) {
+        this.dbHelper = new DatabaseHelper(context);
+    }
+
+    public long addContact(Contact contact) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(ContactEntry.COLUMN_NAME, contact.getName());
+        values.put(ContactEntry.COLUMN_SURNAME, contact.getSurname());
+        values.put(ContactEntry.COLUMN_PHONE, contact.getPhone());
+        values.put(ContactEntry.COLUMN_EMAIL, contact.getEmail());
+        values.put(ContactEntry.COLUMN_BIRTHDAY, contact.getBirthday());
+
+        long newId = db.insert(ContactEntry.TABLE_NAME, null, values);
+        db.close();
+        return newId;
+    }
+
+    public List<Contact> getAllContacts() {
+        List<Contact> contacts = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT * FROM " + ContactEntry.TABLE_NAME +
+                " ORDER BY " + ContactEntry.COLUMN_NAME + " ASC";
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Contact contact = new Contact(
+                        cursor.getLong(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_ID)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_NAME)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_SURNAME)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_PHONE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_EMAIL)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_BIRTHDAY))
+                );
+                contacts.add(contact);
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return contacts;
+    }
+
+    public int updateContact(Contact contact) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(ContactEntry.COLUMN_NAME, contact.getName());
+        values.put(ContactEntry.COLUMN_SURNAME, contact.getSurname());
+        values.put(ContactEntry.COLUMN_PHONE, contact.getPhone());
+        values.put(ContactEntry.COLUMN_EMAIL, contact.getEmail());
+        values.put(ContactEntry.COLUMN_BIRTHDAY, contact.getBirthday());
+
+        int rowsAffected = db.update(
+                ContactEntry.TABLE_NAME,
+                values,
+                ContactEntry.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(contact.getId())}
+        );
+
+        db.close();
+        return rowsAffected;
+    }
+
+    public void deleteContact(long contactId) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.delete(
+                ContactEntry.TABLE_NAME,
+                ContactEntry.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(contactId)}
+        );
+        db.close();
+    }
+}
+```
+
+### Новые понятия: `ContentValues` и `Cursor`
+
+**`ContentValues`** — обёртка над парами "имя колонки → значение", предназначенная для безопасной вставки/обновления строк. Вместо ручной сборки строки `"INSERT INTO contacts (...) VALUES (...)"` (уязвимой к SQL-инъекциям и неудобной из-за экранирования кавычек), значения кладутся в объект `ContentValues`, а Android сам формирует и выполняет безопасный запрос.
+
+**`Cursor`** — объект-курсор для постраничного прохода по результатам `SELECT`, без загрузки всех строк в память сразу. Аналог чтения файла через `fgets()` в цикле вместо одного `malloc()` на весь файл. У курсора есть `moveToFirst()`, `moveToNext()`, `getString(columnIndex)`, `getLong(columnIndex)` и т.д. **Курсор обязательно нужно закрывать** (`cursor.close()`) — под капотом он держит открытый нативный ресурс, и незакрытые курсоры со временем приводят к `SQLiteException: too many open cursors`. Прямая аналогия — не забывать `fclose()` после `fopen()`.
+
+### Разбор построчно
+
+**Композиция вместо наследования.** `DatabaseHelper extends SQLiteOpenHelper` — наследование ("является" отношением: `DatabaseHelper` — разновидность `SQLiteOpenHelper`). А вот `ContactDao` **не наследует** `DatabaseHelper` — он хранит ссылку на него как поле:
+```java
+private final DatabaseHelper dbHelper;
+```
+Это композиция ("содержит" отношение: `ContactDao` пользуется услугами `DatabaseHelper`, но не является им). Фундаментальный выбор в ООП-дизайне: наследование — когда класс действительно есть разновидность родителя; композиция — когда класс просто нуждается в объекте другого класса для своей работы. DAO не является базой данных, он просто использует объект, который умеет её открывать.
+
+**`private final DatabaseHelper dbHelper;`** — `final` здесь применён к **ссылке на объект**, а не к примитивной константе (как было в `DatabaseContract`). Смысл: после присвоения в конструкторе саму ссылку нельзя переприсвоить на другой объект. Это не делает сам объект неизменяемым — просто фиксирует, на какой именно объект указывает поле, раз и навсегда.
+
+**Конструктор `ContactDao(Context context)`** создаёт `DatabaseHelper` внутри себя:
+```java
+public ContactDao(Context context) {
+    this.dbHelper = new DatabaseHelper(context);
+}
+```
+Благодаря этому остальной код приложения будет работать так:
+```java
+ContactDao dao = new ContactDao(this); // this — Context, если вызывается из Activity
+List<Contact> allContacts = dao.getAllContacts();
+```
+— вообще не зная о существовании `DatabaseHelper`. Это и есть практический смысл разделения ответственности: снаружи виден только удобный интерфейс (`addContact`, `getAllContacts`...), детали реализации (SQLiteOpenHelper, сырой SQL, курсоры) спрятаны внутри DAO.
+
+**`db.insert(TABLE_NAME, null, values)`** — второй параметр (`null`) — это `nullColumnHack`, специфичная для SQLite деталь: что подставить, если `values` окажется полностью пустым (SQL не разрешает `INSERT INTO table () VALUES ()` без единой колонки). У нас `values` всегда заполнен, поэтому `null` — стандартная практика. Метод возвращает `long` — ID, присвоенный новой строке через `AUTOINCREMENT`, либо `-1` при неудаче.
+
+**`getWritableDatabase()` vs `getReadableDatabase()`.** Оба метода унаследованы `DatabaseHelper` от `SQLiteOpenHelper`. Именно их вызов (а не создание объекта `DatabaseHelper`) запускает всю логику первого открытия базы: если файла `.db` ещё нет — вызывается `onCreate()`; если версия в коде выше версии файла на диске — вызывается `onUpgrade()`. `onCreate`/`onUpgrade` никогда не вызываются вручную, а `getWritableDatabase()`/`getReadableDatabase()` — вызываются явно каждый раз, когда нужно поработать с базой. Семантически `getReadableDatabase()` используется для операций чтения, `getWritableDatabase()` — для записи (хотя в современных версиях Android оба метода часто возвращают одно и то же соединение, разница важна на уровне читаемости кода).
+
+**`db.rawQuery(query, null)`** — выполнение SQL, который **возвращает** результат (в отличие от `execSQL`, годного только для CREATE/DROP/INSERT-без-результата). Второй параметр — `selectionArgs`, массив значений для плейсхолдеров `?` (здесь их нет, поэтому `null`).
+
+**Цикл `if (cursor.moveToFirst()) { do { ... } while (cursor.moveToNext()); }`.** `moveToFirst()` перемещает курсор на первую строку и возвращает `false`, если результат пуст — отсюда внешний `if`. Конструкция `do-while` подходит, поскольку внутри `if` уже точно известно, что курсор указывает на валидную первую строку — дальше просто двигаемся вперёд, пока `moveToNext()` не вернёт `false`.
+
+**`cursor.getColumnIndexOrThrow(COLUMN_NAME)`.** Курсор хранит данные по числовым индексам колонок, а не по именам напрямую — сначала нужно узнать индекс нужной колонки по имени. Вариант `...OrThrow` выбрасывает исключение, если колонки с таким именем нет, что удобно для отладки (сразу видна ошибка при опечатке, а не тихий `-1` от обычного `getColumnIndex`). Метод для извлечения значения (`getLong`, `getString`) должен соответствовать реальному типу колонки, заданному в `CREATE TABLE`.
+
+**Параметризация в `update`/`delete` — `WHERE ... = ?` + `whereArgs`.** Вместо прямой конкатенации значения в SQL-строку (`"COLUMN_ID = " + contact.getId()`), используется плейсхолдер `?` и отдельный массив аргументов:
+```java
+db.update(TABLE_NAME, values, ContactEntry.COLUMN_ID + " = ?", new String[]{String.valueOf(contact.getId())});
+```
+Это и есть защита от SQL-инъекций на уровне API: если бы значение подставлялось прямой конкатенацией, а оно приходило от пользователя — это была бы классическая уязвимость. Android API поощряет безопасный способ через `?` + `whereArgs`, где библиотека сама экранирует значение. `whereArgs` принимает только `String[]`, поэтому `long id` явно преобразуется через `String.valueOf(...)`.
+
+**`updateContact` возвращает `int`** — количество затронутых строк (обычно `1`, если контакт с таким ID найден и обновлён; `0` — если такого ID не существует, что удобно проверять в вызывающем коде).
+
+### Открытый вопрос: удаление контакта и связанные сообщения
+
+Поскольку `messages` ссылается на `contacts` через `FOREIGN KEY` без `ON DELETE CASCADE`, при удалении контакта его сообщения **не удаляются автоматически** — SQLite по умолчанию не каскадирует удаление. Решение отложено до этапа реализации UI-логики удаления: либо удалять связанные сообщения отдельным запросом внутри `deleteContact`, либо добавить `ON DELETE CASCADE` в схему.
+
+---
+
 ## Итог этапа
 
-Созданы три файла, формирующие основу слоя данных: `DatabaseContract` (константы), `Contact` (модель), `DatabaseHelper` (создание/версионирование БД). Таблицы ещё не наполняются и не читаются — это следующий этап (CRUD-операции).
+Созданы четыре файла, формирующие слой данных:
+- `DatabaseContract` — константы (имена таблиц/колонок);
+- `Contact` — модель одного контакта;
+- `DatabaseHelper` — только создание и версионирование БД;
+- `ContactDao` — CRUD-операции над контактами, единственная точка входа для работы с таблицей `contacts` для остального кода приложения.
+
+Методы для таблицы `messages` (`MessageDao`) будут добавлены по тому же принципу на этапе работы с перепиской, чтобы не перегружать текущий этап. Таблицы пока не задействованы в UI — это следующий шаг.
