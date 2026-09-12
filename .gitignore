@@ -1,0 +1,36 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Скомпилированные файлы и результаты сборки
+*.class
+/build
+/app/build
+
+# Локальные настройки конкретно ТВОЕЙ машины — пути к SDK и т.д.
+local.properties
+
+# Файлы IDE, специфичные для конкретного окружения
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+*.iml
+
+# Кеши
+.gradle/
+.DS_Store
+/captures
+.externalNativeBuildBuild
+.cxx/
