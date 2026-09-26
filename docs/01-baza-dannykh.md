@@ -52,7 +52,7 @@
 ### Код
 
 ```java
-package com.fortytwo.hangouts;
+package com.fortytwo.ft_hangouts;
 
 public final class DatabaseContract {
 
@@ -105,7 +105,7 @@ public final class DatabaseContract {
 ### Код
 
 ```java
-package com.fortytwo.hangouts;
+package com.fortytwo.ft_hangouts;
 
 public class Contact {
     private long id;
@@ -172,13 +172,13 @@ public void setPhone(String phone) {
 ### Код
 
 ```java
-package com.fortytwo.hangouts;
+package com.fortytwo.ft_hangouts;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import static com.fortytwo.hangouts.DatabaseContract.*;
+import static com.fortytwo.ft_hangouts.DatabaseContract.*;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -225,7 +225,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 **`@Override`.** Аннотация, сообщающая компилятору: "этот метод переопределяет метод родителя, а не создаёт новый". Защита от опечаток — без `@Override` опечатка в имени метода (`onCreat` вместо `onCreate`) молча создала бы никогда не вызываемый новый метод; с `@Override` компилятор сразу выдаст ошибку, если имя не совпадает ни с одним методом родителя.
 
 **`super(context, DATABASE_NAME, null, DATABASE_VERSION);`** — вызов конструктора родителя (`SQLiteOpenHelper`). Аргументы:
-- `context` — ссылка на "окружение" приложения; нужен, поскольку путь к файлу базы (`/data/data/com.fortytwo.hangouts/databases/`) вычисляется именно через него;
+- `context` — ссылка на "окружение" приложения; нужен, поскольку путь к файлу базы (`/data/data/com.fortytwo.ft_hangouts/databases/`) вычисляется именно через него;
 - `DATABASE_NAME` — имя файла, константа из `DatabaseContract`, доступна напрямую благодаря `import static ...DatabaseContract.*;`;
 - `null` — `CursorFactory`, кастомизация построения объектов `Cursor`; стандартное поведение по умолчанию устраивает, поэтому `null`;
 - `DATABASE_VERSION` — номер версии схемы; при его увеличении в будущем система сама вызовет `onUpgrade()`.
@@ -255,7 +255,7 @@ DAO — класс, который **использует** `DatabaseHelper`, ч
 ### Код
 
 ```java
-package com.fortytwo.hangouts;
+package com.fortytwo.ft_hangouts;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -265,7 +265,7 @@ import android.database.sqlite.SQLiteDatabase;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.fortytwo.hangouts.DatabaseContract.*;
+import static com.fortytwo.ft_hangouts.DatabaseContract.*;
 
 public class ContactDao {
 
@@ -403,6 +403,37 @@ db.update(TABLE_NAME, values, ContactEntry.COLUMN_ID + " = ?", new String[]{Stri
 
 ---
 
+## Проверка на реальном устройстве
+
+Слой данных проверен не только компиляцией, но и фактическим запуском — временным тестовым кодом в `MainActivity.onCreate()`:
+
+```java
+ContactDao dao = new ContactDao(this);
+
+dao.addContact(new Contact("Иван", "Петров", "+34600000000", "ivan@mail.com", "1990-05-14"));
+dao.addContact(new Contact("Мария", "Сидорова", "+34600000001", "maria@mail.com", "1985-03-22"));
+
+List<Contact> allContacts = dao.getAllContacts();
+for (Contact c : allContacts) {
+    Log.d("FT_HANGOUTS_TEST", "Contact: id=" + c.getId() +
+            ", name=" + c.getName() +
+            ", surname=" + c.getSurname() +
+            ", phone=" + c.getPhone());
+}
+```
+
+Тестирование велось на реальном Android-устройстве (Samsung, подключён по USB) — попытка использовать эмулятор (AVD) провалилась: даже с виртуализацией эмуляция чужой архитектуры процессора (ARM поверх x86 кампусной машины) плюс всего Android-стека поверх ядра оказалась слишком тяжёлой для кампусного железа и полностью повесила систему. Реальное устройство отрабатывает эту нагрузку нативно, без эмуляции, и оказалось единственным практичным вариантом на данной машине.
+
+**Первый запуск** — Logcat (фильтр `package:mine FT_HANGOUTS_TEST`) показал:
+```
+Contact: id=1, name=Иван, surname=Петров, phone=+34600000000
+Contact: id=2, name=Мария, surname=Сидорова, phone=+34600000001
+```
+
+**Повторный запуск** (после полного закрытия приложения) — вывел уже **4** записи (id 1–4): два контакта, прочитанных из уже существующей базы, плюс два новых, добавленных повторным вызовом `addContact`. Это подтверждает, что данные реально сохраняются на диске устройства между запусками (персистентность), а не живут только в памяти процесса.
+
+Тестовый код в `MainActivity` — временный, будет удалён на этапе построения настоящего UI (следующий этап).
+
 ## Итог этапа
 
 Созданы четыре файла, формирующие слой данных:
@@ -410,5 +441,7 @@ db.update(TABLE_NAME, values, ContactEntry.COLUMN_ID + " = ?", new String[]{Stri
 - `Contact` — модель одного контакта;
 - `DatabaseHelper` — только создание и версионирование БД;
 - `ContactDao` — CRUD-операции над контактами, единственная точка входа для работы с таблицей `contacts` для остального кода приложения.
+
+Весь слой подтверждён рабочим на реальном устройстве: запись, чтение и персистентность данных между запусками работают корректно.
 
 Методы для таблицы `messages` (`MessageDao`) будут добавлены по тому же принципу на этапе работы с перепиской, чтобы не перегружать текущий этап. Таблицы пока не задействованы в UI — это следующий шаг.

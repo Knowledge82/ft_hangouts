@@ -29,10 +29,11 @@ ft_hangouts — первый проект Outer Core, посвящённый м�
 | Язык приложения | **Java** | Плавный переход от C/C++ без null-safety и другого синтаксического груза Kotlin; больше документации именно под "голый" Android SDK. |
 | Система сборки | **Gradle, Kotlin DSL** (`build.gradle.kts`) | Современный подход, статическая типизация конфигурации, лучше автокомплит в IDE. |
 | БД | **Собственная SQLite-схема** через `SQLiteOpenHelper`, без Room | Задание запрещает внешние библиотеки; Room — часть Jetpack, к делу не подходит. |
-| UI | Классические View-компоненты (`LinearLayout`, `ListView`), без Jetpack Compose | Формулировка "no external libraries including for UI design" трактуется консервативно, чтобы не спорить на защите. |
+| UI | Только голый Android SDK (`LinearLayout`, `ListView`, `TextView`) — без Material Components, без ConstraintLayout, без Jetpack Compose | Формулировка "no external libraries including for UI design" трактуется консервативно. Обе библиотеки, изначально подключённые шаблоном Android Studio по умолчанию, сознательно удалены из `build.gradle.kts`; тема приложения — `Theme.AppCompat.DayNight`, а не `Theme.Material3`. |
+| Дизайн | Кастомная светлая (персиковая) и тёмная (изумрудная) палитра через `values`/`values-night`; скруглённые карточки, тени, ripple-эффект с маской — всё через `<shape>`/`<ripple>` drawable, часть core SDK | Современный вид без единой внешней зависимости. |
 | IDE | Android Studio | Официально рекомендован заданием. |
 
-Полное обоснование каждого решения — в [`docs/`](./docs).
+Полное обоснование каждого решения — в [`docs/`](./docs), см. оглавление ниже.
 
 ---
 
@@ -43,7 +44,7 @@ ft_hangouts — первый проект Outer Core, посвящённый м�
 - [ ] Создание контакта (≥5 полей)
 - [ ] Редактирование контакта
 - [ ] Удаление контакта
-- [ ] Список контактов на главном экране (summary)
+- [x] Список контактов на главном экране (summary)
 - [ ] Отправка SMS контакту
 - [ ] Приём SMS от сохранённых контактов
 - [ ] История переписки (отправитель/получатель)
@@ -70,26 +71,46 @@ ft_hangouts — первый проект Outer Core, посвящённый м�
 
 ## Структура документации
 
-```
-docs/
-├── 00-nastroika-okruzheniya.md   — установка Android Studio на кампусной машине 42, работа с goinfre
-├── 01-baza-dannykh.md            — проектирование схемы БД, DatabaseContract, Contact, DatabaseHelper
-└── ...                           — далее по одному файлу на каждый следующий этап
-```
+Каждый файл в `docs/` — подробный разбор конкретного этапа: что делали, зачем, как устроен код построчно, какие концепции Android/Java встречаются впервые.
 
-Каждый файл в `docs/` — подробный разбор конкретного этапа: что делали, зачем, как устроен код построчно, какие концепции Android/Java здесь встречаются впервые.
+1. [`00-nastroika-okruzheniya.md`](./docs/00-nastroika-okruzheniya.md) — установка Android Studio на кампусной машине 42, работа с `/goinfre`, переменные окружения, расчистка диска.
+2. [`01-baza-dannykh.md`](./docs/01-baza-dannykh.md) — схема БД, `DatabaseContract`, `Contact`, `DatabaseHelper`, `ContactDao`; архитектурное решение в пользу DAO; проверка на реальном устройстве.
+3. [`02-git-i-sinhronizaciya.md`](./docs/02-git-i-sinhronizaciya.md) — `.gitignore`, что коммитить и что нет, синхронизация между кампусом и домом.
+4. [`03-spisok-kontaktov.md`](./docs/03-spisok-kontaktov.md) — главный экран: layout-файлы, `ContactAdapter`, `ListView`, view recycling.
+5. [`04-dizain-sistema.md`](./docs/04-dizain-sistema.md) — светлая/тёмная тема, скруглённые карточки, ripple по маске, очистка от скрытых зависимостей (Material Components, ConstraintLayout).
+6. [`xml-spravochnik.md`](./docs/xml-spravochnik.md) — справочная страница: что такое XML, зачем нужен, как читать (не привязана к конкретному этапу).
+
+Дальнейшие этапы (добавление/редактирование контакта, дизайн-система, SMS, локализация и т.д.) будут добавляться сюда по мере продвижения.
 
 ---
 
 ## Структура проекта (код)
 
 ```
-app/src/main/java/com/fortytwo/hangouts/
+app/src/main/java/com/fortytwo/ft_hangouts/
 ├── DatabaseContract.java   — константы: имена таблиц/колонок
 ├── Contact.java            — модель данных контакта
 ├── DatabaseHelper.java     — только создание и версионирование SQLite-базы
 ├── ContactDao.java         — CRUD-операции над контактами (Data Access Object)
-└── ...                     — activities и остальная логика (в разработке)
+├── ContactAdapter.java     — адаптер для отображения контактов в ListView
+├── MainActivity.java       — главный экран (список контактов)
+└── ...                     — остальные activities (в разработке)
+```
+
+```
+app/src/main/res/
+├── layout/
+│   ├── activity_main.xml         — разметка главного экрана
+│   └── contact_list_item.xml     — разметка одной строки списка
+├── drawable/
+│   ├── bg_card.xml                — фон карточки (скруглённые углы)
+│   └── bg_card_ripple.xml         — ripple-эффект с маской по форме карточки
+├── values/
+│   ├── colors.xml                 — светлая (персиковая) палитра
+│   └── themes.xml                 — базовая тема, AppCompat.DayNight
+└── values-night/
+    ├── colors.xml                 — тёмная (изумрудная) палитра
+    └── themes.xml
 ```
 
 ---
