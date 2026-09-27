@@ -58,7 +58,7 @@ ft_hangouts — первый проект Outer Core, посвящённый м�
 
 - [ ] Фото профиля у контакта
 - [ ] Автосоздание контакта при сообщении с неизвестного номера
-- [ ] Material Design UI
+- [x] Material Design UI — реализовано через принципы (elevation, ripple, meaningful color, cards), без библиотеки Material Components; см. [`material-design-printsipy.md`](./docs/material-design-printsipy.md)
 - [ ] Звонок контакту прямо из приложения
 
 ### Ограничения задания
@@ -79,6 +79,7 @@ ft_hangouts — первый проект Outer Core, посвящённый м�
 4. [`03-spisok-kontaktov.md`](./docs/03-spisok-kontaktov.md) — главный экран: layout-файлы, `ContactAdapter`, `ListView`, view recycling.
 5. [`04-dizain-sistema.md`](./docs/04-dizain-sistema.md) — светлая/тёмная тема, скруглённые карточки, ripple по маске, очистка от скрытых зависимостей (Material Components, ConstraintLayout).
 6. [`xml-spravochnik.md`](./docs/xml-spravochnik.md) — справочная страница: что такое XML, зачем нужен, как читать (не привязана к конкретному этапу).
+7. [`material-design-printsipy.md`](./docs/material-design-printsipy.md) — справочная страница: что такое Material Design, кем/когда/зачем создан, разбор ключевых принципов и как каждый из них реализован в проекте без библиотеки Material Components.
 
 Дальнейшие этапы (добавление/редактирование контакта, дизайн-система, SMS, локализация и т.д.) будут добавляться сюда по мере продвижения.
 
