@@ -25,7 +25,7 @@ public class AddEditContactActivity extends AppCompatActivity {
 
     private long contactId = -1;
     private boolean isEditMode = false;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
