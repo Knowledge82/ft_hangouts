@@ -41,9 +41,9 @@ ft_hangouts — первый проект Outer Core, посвящённый м�
 
 ### Обязательная часть
 
-- [ ] Создание контакта (≥5 полей)
-- [ ] Редактирование контакта
-- [ ] Удаление контакта
+- [x] Создание контакта (≥5 полей)
+- [x] Редактирование контакта
+- [x] Удаление контакта
 - [x] Список контактов на главном экране (summary)
 - [ ] Отправка SMS контакту
 - [ ] Приём SMS от сохранённых контактов
@@ -78,8 +78,9 @@ ft_hangouts — первый проект Outer Core, посвящённый м�
 3. [`02-git-i-sinhronizaciya.md`](./docs/02-git-i-sinhronizaciya.md) — `.gitignore`, что коммитить и что нет, синхронизация между кампусом и домом.
 4. [`03-spisok-kontaktov.md`](./docs/03-spisok-kontaktov.md) — главный экран: layout-файлы, `ContactAdapter`, `ListView`, view recycling.
 5. [`04-dizain-sistema.md`](./docs/04-dizain-sistema.md) — светлая/тёмная тема, скруглённые карточки, ripple по маске, очистка от скрытых зависимостей (Material Components, ConstraintLayout).
-6. [`xml-spravochnik.md`](./docs/xml-spravochnik.md) — справочная страница: что такое XML, зачем нужен, как читать (не привязана к конкретному этапу).
-7. [`material-design-printsipy.md`](./docs/material-design-printsipy.md) — справочная страница: что такое Material Design, кем/когда/зачем создан, разбор ключевых принципов и как каждый из них реализован в проекте без библиотеки Material Components.
+6. [`05-redaktirovanie-udalenie.md`](./docs/05-redaktirovanie-udalenie.md) — Edit/Delete контакта через двухрежимную `AddEditContactActivity`, подробный разбор `Activity`/`Intent`/жизненного цикла, отступ от статус-бара (edge-to-edge), `autofillHints`, ввод даты рождения через `DatePickerDialog`.
+7. [`xml-spravochnik.md`](./docs/xml-spravochnik.md) — справочная страница: что такое XML, зачем нужен, как читать (не привязана к конкретному этапу).
+8. [`material-design-printsipy.md`](./docs/material-design-printsipy.md) — справочная страница: что такое Material Design, кем/когда/зачем создан, разбор ключевых принципов и как каждый из них реализован в проекте без библиотеки Material Components.
 
 Дальнейшие этапы (добавление/редактирование контакта, дизайн-система, SMS, локализация и т.д.) будут добавляться сюда по мере продвижения.
 

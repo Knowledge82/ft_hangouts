@@ -60,6 +60,33 @@ public class ContactDao {
         return contacts;
     }
 
+    public Contact getContactById(long contactId) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Contact contact = null;
+
+        Cursor cursor = db.query(
+                ContactEntry.TABLE_NAME,
+                null,
+                ContactEntry.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(contactId)},
+                null, null, null
+        );
+
+        if (cursor.moveToFirst()) {
+            contact = new Contact(
+                    cursor.getLong(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_ID)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_NAME)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_SURNAME)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_PHONE)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_EMAIL)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(ContactEntry.COLUMN_BIRTHDAY))
+            );
+        }
+
+        cursor.close();
+        db.close();
+        return contact;
+    }
     public int updateContact(Contact contact) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
