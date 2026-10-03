@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showColorPickerDialog() {
-        String[] colorNames = {"Персиковый (по умолчанию)", "Синий", "Зелёный", "Фиолетовый", "Красный"};
+        String[] colorNames = getResources().getStringArray(R.array.toolbar_color_names);
         int[] colorValues = {
                 getColor(R.color.primary),
                 Color.parseColor("#4C6EF5"),
@@ -43,11 +43,10 @@ public class MainActivity extends AppCompatActivity {
         };
 
         new AlertDialog.Builder(this)
-                .setTitle("Цвет шапки")
+                .setTitle(R.string.dialog_color_title)
                 .setItems(colorNames, (dialog, which) -> {
                     int chosenColor = colorValues[which];
                     toolbar.setBackgroundColor(chosenColor);
-
                     SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
                     prefs.edit().putInt(KEY_TOOLBAR_COLOR, chosenColor).apply();
                 })
@@ -118,17 +117,15 @@ public class MainActivity extends AppCompatActivity {
 
         contactListView.setOnItemLongClickListener((parent, view, position, id) -> {
             Contact contact = contactAdapter.getItem(position);
-
             new AlertDialog.Builder(MainActivity.this)
-                    .setTitle("Удалить контакт")
-                    .setMessage("Удалить " + contact.getName() + " " + contact.getSurname() + "?")
-                    .setPositiveButton("Удалить", (dialog, which) -> {
+                    .setTitle(R.string.dialog_delete_title)
+                    .setMessage(getString(R.string.dialog_delete_message, contact.getName(), contact.getSurname()))
+                    .setPositiveButton(R.string.dialog_delete_confirm, (dialog, which) -> {
                         contactDao.deleteContact(contact.getId());
                         refreshContactList();
                     })
-                    .setNegativeButton("Отмена", null)
+                    .setNegativeButton(R.string.dialog_delete_cancel, null)
                     .show();
-
             return true;
         });
     }

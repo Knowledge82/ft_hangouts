@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">ft_hangouts</string>
+
+    <string name="menu_change_color">Цвет шапки</string>
+    <string name="dialog_delete_title">Удалить контакт</string>
+    <string name="dialog_delete_message">Удалить %1$s %2$s?</string>
+    <string name="dialog_delete_confirm">Удалить</string>
+    <string name="dialog_delete_cancel">Отмена</string>
+    <string name="dialog_color_title">Цвет шапки</string>
+
+    <string-array name="toolbar_color_names">
+        <item>Персиковый (по умолчанию)</item>
+        <item>Синий</item>
+        <item>Зелёный</item>
+        <item>Фиолетовый</item>
+        <item>Красный</item>
+    </string-array>
+
+    <string name="title_new_contact">Новый контакт</string>
+    <string name="title_edit_contact">Редактировать контакт</string>
+
+    <string name="hint_name">Имя</string>
+    <string name="hint_surname">Фамилия</string>
+    <string name="hint_phone">Телефон</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_birthday">Дата рождения (ГГГГ-ММ-ДД)</string>
+    <string name="btn_save">Сохранить</string>
+
+    <string name="error_name_phone_required">Имя и телефон обязательны</string>
+
+    <string name="toast_background_info">Свёрнуто в %1$s (%2$d мин %3$d сек назад)</string>
+
+</resources>

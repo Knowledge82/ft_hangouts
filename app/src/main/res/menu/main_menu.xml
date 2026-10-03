@@ -1,9 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <item
         android:id="@+id/action_change_color"
-        android:title="Цвет шапки"
+        android:title="@string/menu_change_color"
         app:showAsAction="never" />
-
 </menu>

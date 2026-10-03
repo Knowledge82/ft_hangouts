@@ -35,17 +35,16 @@
             android:id="@+id/nameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Имя"
+            android:hint="@string/hint_name"
             android:inputType="textPersonName"
             android:autofillHints="name" />
-
 
         <EditText
             android:id="@+id/surnameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Фамилия"
+            android:hint="@string/hint_surname"
             android:inputType="textPersonName" />
 
         <EditText
@@ -53,17 +52,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Телефон"
+            android:hint="@string/hint_phone"
             android:inputType="phone"
             android:autofillHints="phone" />
-
 
         <EditText
             android:id="@+id/emailEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Email"
+            android:hint="@string/hint_email"
             android:inputType="textEmailAddress"
             android:autofillHints="emailAddress" />
 
@@ -73,7 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Дата рождения (ГГГГ-ММ-ДД)"
+            android:hint="@string/hint_birthday"
             android:inputType="date" />
 
         <Button
@@ -81,7 +79,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Сохранить"
+            android:text="@string/btn_save"
             android:backgroundTint="@color/primary" />
 
     </LinearLayout>

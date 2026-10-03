@@ -1,3 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- General -->
     <string name="app_name">ft_hangouts</string>
+
+    <!-- Main screen -->
+    <string name="menu_change_color">Header color</string>
+    <string name="dialog_delete_title">Delete contact</string>
+    <string name="dialog_delete_message">Delete %1$s %2$s?</string>
+    <string name="dialog_delete_confirm">Delete</string>
+    <string name="dialog_delete_cancel">Cancel</string>
+    <string name="dialog_color_title">Header color</string>
+
+    <string-array name="toolbar_color_names">
+        <item>Peach (default)</item>
+        <item>Blue</item>
+        <item>Green</item>
+        <item>Purple</item>
+        <item>Red</item>
+    </string-array>
+
+    <!-- Add/Edit contact screen -->
+    <string name="title_new_contact">New contact</string>
+    <string name="title_edit_contact">Edit contact</string>
+
+    <string name="hint_name">First name</string>
+    <string name="hint_surname">Last name</string>
+    <string name="hint_phone">Phone</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_birthday">Date of birth (YYYY-MM-DD)</string>
+    <string name="btn_save">Save</string>
+
+    <string name="error_name_phone_required">Name and phone are required</string>
+
+    <!-- Toast -->
+    <string name="toast_background_info">Backgrounded at %1$s (%2$d min %3$d sec ago)</string>
+
 </resources>

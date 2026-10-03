@@ -40,8 +40,10 @@ public class HangoutsApp extends Application {
                                 "HH:mm:ss dd.MM.yyyy", Locale.getDefault())
                                 .format(new Date(lastBackground));
 
-                        String message = "Свёрнуто в " + formattedTimestamp
-                                + " (" + minutes + " мин " + seconds + " сек назад)";
+                        String message = getString(
+                                R.string.toast_background_info,
+                                formattedTimestamp, minutes, seconds
+                        );
 
                         Toast.makeText(HangoutsApp.this, message, Toast.LENGTH_LONG).show();
                     }

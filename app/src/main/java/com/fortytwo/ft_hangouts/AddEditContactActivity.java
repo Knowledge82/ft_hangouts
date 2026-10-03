@@ -72,10 +72,10 @@ public class AddEditContactActivity extends AppCompatActivity {
         isEditMode = contactId != -1;
 
         if (isEditMode) {
-            toolbarTitle.setText("Редактировать контакт");
+            toolbarTitle.setText(R.string.title_edit_contact);
             loadContact();
         } else {
-            toolbarTitle.setText("Новый контакт");
+            toolbarTitle.setText(R.string.title_new_contact);
         }
     }
 
@@ -120,7 +120,7 @@ public class AddEditContactActivity extends AppCompatActivity {
         String phone = phoneEditText.getText().toString().trim();
 
         if (name.isEmpty() || phone.isEmpty()) {
-            Toast.makeText(this, "Имя и телефон обязательны", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.error_name_phone_required, Toast.LENGTH_SHORT).show();
             return;
         }
 
